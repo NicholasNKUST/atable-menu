@@ -6,10 +6,11 @@
 <title>煙燻林徑：歐亞野火盛宴｜A.table nordic 北歐餐桌</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500&display=swap">
 <style>
-:root{--bg:#f0efec;--card:#fff;--ink:#1f2a22;--mute:#6c7468;--blue:#5b7bb3;--line:#d5d8dc;--sel:#e9eef7;--yellow:#e6e27a;--err:#b3261e;--ok:#2e6b3f}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161c18;--card:#202821;--ink:#eceae4;--mute:#a1a99c;--blue:#8fa9d6;--line:#34403a;--sel:#27344a;--err:#ff8a80;--ok:#8fd19e}}
-:root[data-theme="dark"]{--bg:#161c18;--card:#202821;--ink:#eceae4;--mute:#a1a99c;--blue:#8fa9d6;--line:#34403a;--sel:#27344a;--err:#ff8a80;--ok:#8fd19e}
+:root{--bg:#f0efec;--card:#fff;--ink:#1f2a22;--mute:#6c7468;--blue:#5b7bb3;--line:#d5d8dc;--sel:#e9eef7;--yellow:#e6e27a;--err:#b3261e;--ok:#2e6b3f;--onblue:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161c18;--card:#202821;--ink:#eceae4;--mute:#a1a99c;--blue:#8fa9d6;--line:#34403a;--sel:#27344a;--err:#ff8a80;--ok:#8fd19e;--onblue:#14201a}}
+:root[data-theme="dark"]{--bg:#161c18;--card:#202821;--ink:#eceae4;--mute:#a1a99c;--blue:#8fa9d6;--line:#34403a;--sel:#27344a;--err:#ff8a80;--ok:#8fd19e;--onblue:#14201a}
 *{box-sizing:border-box}
+[hidden]{display:none !important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
 header{background:#1f2a22;color:#f0efec;padding:40px 20px 36px;text-align:center;border-bottom:8px solid var(--yellow)}
 header .brand{font:700 15px "Noto Serif TC",serif;letter-spacing:.3em;color:#9fb5dc;margin:0 0 14px}
@@ -47,7 +48,7 @@ aside h2{font:700 19px "Noto Serif TC",serif;margin:0 0 4px}
 .sum .none{color:var(--mute);font-style:italic}
 .sum span{text-align:right}
 .btns{display:flex;gap:8px;margin-top:8px}
-button{font:inherit;font-size:15px;min-height:44px;padding:9px 14px;border-radius:8px;border:1px solid var(--blue);background:var(--blue);color:#fff;cursor:pointer;flex:1}
+button{font:inherit;font-size:15px;min-height:44px;padding:9px 14px;border-radius:8px;border:1px solid var(--blue);background:var(--blue);color:var(--onblue);cursor:pointer;flex:1}
 button.ghost{background:transparent;color:var(--blue)}
 button:disabled{opacity:.55;cursor:not-allowed}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
@@ -56,8 +57,14 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .msg.err{color:var(--err)}
 .msg.ok{color:var(--ok)}
 .bar{display:none}
-#results{max-width:1040px;margin:0 auto;padding:0 16px 96px}
-#results[hidden]{display:none}
+#p-stats{max-width:1040px;margin:0 auto;padding:16px 16px 96px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:1040px;margin:16px auto 0;padding:0 16px}
+.tabs button{background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:500}
+.tabs button[aria-selected="true"]{background:var(--blue);color:var(--onblue);border-color:var(--blue)}
+.thanks{max-width:640px;margin:0 auto;padding:24px 16px 96px}
+.thanks h2{font:700 24px "Noto Serif TC",serif;margin:0 0 8px;color:var(--blue)}
+.thanks .btns{flex-direction:column;margin:14px 0 10px}
+body:not([data-view="vote"]) .bar{display:none !important}
 .rhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
 .rhead h2{font:700 22px "Noto Serif TC",serif;margin:0}
 .rhead button{flex:none;min-height:40px;padding:6px 14px}
@@ -83,7 +90,7 @@ aside{position:static;max-height:none}
 }
 </style>
 </head>
-<body>
+<body data-view="vote">
 <header>
   <p class="brand">A.table nordic 北歐餐桌</p>
   <h1>煙燻林徑：歐亞野火盛宴</h1>
@@ -92,7 +99,13 @@ aside{position:static;max-height:none}
   <p class="price">每位 $1590<small>未稅｜最低 10 位出餐</small></p>
 </header>
 
-<main>
+<nav class="tabs" id="tabs" role="tablist" aria-label="頁面切換">
+  <button type="button" role="tab" id="t-vote" aria-controls="p-vote" aria-selected="true">我要投票</button>
+  <button type="button" role="tab" id="t-stats" aria-controls="p-stats" aria-selected="false" tabindex="-1">統計與預計菜單</button>
+</nav>
+
+<div id="p-vote" role="tabpanel" aria-labelledby="t-vote">
+<main id="vote-form">
   <div>
     <section class="course" aria-label="填寫人資訊">
       <div class="head"><h2>你的資料</h2><span class="tag">必填</span></div>
@@ -120,7 +133,22 @@ aside{position:static;max-height:none}
   </aside>
 </main>
 
-<section id="results" hidden aria-live="polite">
+<section id="thanks" class="thanks" hidden>
+  <div class="course">
+    <h2>投票完成，謝謝你！</h2>
+    <p id="thanks-who" style="margin:0 0 8px;font-weight:500"></p>
+    <ul class="sum" id="thanks-list"></ul>
+    <p class="sub">你的選擇已送給主辦人。店家規定每輪統一出一道菜，最後會依份數最多的選項決定。</p>
+    <div class="btns">
+      <button id="goStats" type="button">點我看預計菜單</button>
+      <button id="again" class="ghost" type="button">再填一份</button>
+    </div>
+    <p class="sub">如要更正，重新送出會新增另一筆回覆，請告知主辦人刪除舊的一筆。</p>
+  </div>
+</section>
+</div>
+
+<section id="p-stats" role="tabpanel" aria-labelledby="t-stats" hidden aria-live="polite">
   <div class="rhead">
     <h2>目前統計</h2>
     <button id="refresh" class="ghost" type="button">重新整理</button>
@@ -234,22 +262,28 @@ function jsonp(url){
     const s=document.createElement("script");
     const done=()=>{clearTimeout(t);delete window[cb];s.remove();};
     const t=setTimeout(()=>{done();rej(new Error("timeout"));},15000);
-    window[cb]=j=>{done();j&&j.ok?res(j.stats):rej(new Error((j&&j.error)||"bad"));};
+    window[cb]=j=>{done();try{res(unwrap(j));}catch(e){rej(e);}};
     s.onerror=()=>{done();rej(new Error("load"));};
     s.src=url+"&callback="+cb+"&_="+Date.now();
     document.head.appendChild(s);
   });
 }
+function unwrap(j){
+  if(j&&j.ok&&j.stats)return j.stats;
+  const e=new Error("stats");
+  e.detail=j&&j.ok?"後端尚未更新，主辦人請在 Apps Script 發布最新版本":((j&&j.error)||"");
+  throw e;
+}
 async function fetchStats(){
   const url=ENDPOINT+(ENDPOINT.indexOf("?")>=0?"&":"?")+"action=stats";
+  let j;
   try{
     const r=await fetch(url,{cache:"no-store"});
-    const j=await r.json();
-    if(j&&j.ok)return j.stats;
-    throw new Error((j&&j.error)||"bad");
+    j=await r.json();
   }catch(e){
-    return jsonp(url);
+    return jsonp(url);   /* 瀏覽器擋住直接讀取時，改用 JSONP */
   }
+  return unwrap(j);
 }
 /* 每輪取份數最多者；並列時取先列出的，並標註並列 */
 function planOf(r){
@@ -293,12 +327,19 @@ function renderResults(st){
   $("rbody").innerHTML=`<p class="sub">已統計 ${total} 位｜更新於 ${time}｜每條長度為占總人數的比例</p>`
     +`<div class="rgrid"><div>${hist}</div><div class="plan">${plan}</div></div>`;
 }
-async function showResults(){
-  $("results").hidden=false;
+let statsSeq=0;
+async function loadStats(){
+  const my=++statsSeq;
   $("rbody").innerHTML='<p class="sub">載入統計中…</p>';
   $("refresh").disabled=true;
+  let html;
   try{renderResults(await fetchStats());}
-  catch(e){$("rbody").innerHTML='<p class="msg err">暫時無法載入統計，請稍後按「重新整理」再試。</p>';}
+  catch(e){
+    html='<p class="msg err">暫時無法載入統計，請稍後按「重新整理」再試。</p>'
+      +(e&&e.detail?`<p class="sub">${esc(e.detail)}</p>`:"");
+  }
+  if(my!==statsSeq)return;          /* 有更新的請求時，丟棄這次結果 */
+  if(html)$("rbody").innerHTML=html;
   $("refresh").disabled=false;
 }
 
@@ -323,12 +364,9 @@ async function submit(){
     setMsg("送出失敗，請檢查網路後再試一次","err");
   }
   sending=false;render();
-  if(sent){
-    await showResults();
-    $("results").scrollIntoView({behavior:"smooth",block:"start"});
-  }
+  if(sent){lastSubmitted=payload;showThanks();}
 }
-$("refresh").onclick=showResults;
+$("refresh").onclick=loadStats;
 $("submit").onclick=submit;
 $("name").oninput=touched;
 $("hc").onchange=touched;
@@ -339,7 +377,49 @@ $("copy").onclick=async()=>{
   setTimeout(()=>b.textContent="複製清單",1600);
 };
 $("reset").onclick=()=>{sel.forEach((_,i)=>sel[i]=[]);touched();};
+/* ---------- 頁籤與感謝頁 ---------- */
+let view="vote",lastSubmitted=null;
+const voteView=()=>sent?"thanks":"vote";
+function setView(v,scroll=true){
+  view=v;
+  const st=v==="stats";
+  document.body.dataset.view=v;
+  $("p-vote").hidden=st;
+  $("p-stats").hidden=!st;
+  $("vote-form").hidden=v!=="vote";
+  $("thanks").hidden=v!=="thanks";
+  [["t-vote",!st],["t-stats",st]].forEach(([id,on])=>{
+    const b=$(id);b.setAttribute("aria-selected",String(on));b.tabIndex=on?0:-1;
+  });
+  try{history.replaceState(null,"",st?"#stats":"#vote");}catch(e){}
+  if(scroll)$("tabs").scrollIntoView({behavior:"smooth",block:"start"});
+  if(st)loadStats();
+}
+function showThanks(){
+  const p=lastSubmitted,n=p.headcount,ex=extraPer();
+  $("thanks-who").textContent=`${p.name}，${n} 位，合計 ${money(n*(PRICE+ex))}（未稅）`;
+  $("thanks-list").innerHTML=CHOICES.map((c,i)=>`<li><b>${esc(c.title)}</b><span>${esc(p.picks[i])}</span></li>`).join("");
+  setView("thanks");
+}
+$("t-vote").onclick=()=>setView(voteView());
+$("t-stats").onclick=()=>setView("stats");
+$("goStats").onclick=()=>setView("stats");
+$("again").onclick=()=>{
+  sel.forEach((_,i)=>sel[i]=[]);$("name").value="";
+  sent=false;lastSubmitted=null;setMsg("","");render();setView("vote");
+};
+$("tabs").addEventListener("keydown",e=>{
+  if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft")return;
+  const toStats=e.key==="ArrowRight";
+  $(toStats?"t-stats":"t-vote").focus();
+  setView(toStats?"stats":voteView());
+});
+window.addEventListener("hashchange",()=>{
+  if(location.hash==="#stats"&&view!=="stats")setView("stats");
+  else if(location.hash==="#vote"&&view==="stats")setView(voteView());
+});
 build();render();
+if(location.hash==="#stats")setView("stats",false);
 </script>
 </body>
 </html>
