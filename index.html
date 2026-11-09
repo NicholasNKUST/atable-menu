@@ -314,8 +314,8 @@ function renderResults(st){
     const lis=st.rounds.map((r,k)=>{
       const p=plans[k];
       const v=p.win
-        ?`${esc(p.win.n)}${badge(p.win)}<span class="note">${p.win.count} 份`
-          +(p.ties.length?`｜與「${p.ties.map(t=>esc(t.n)).join("、")}」並列，暫以先列出者為主`:"")+`</span>`
+        ?`${esc(p.win.n)}${badge(p.win)}`
+          +(p.ties.length?`<span class="note">與「${p.ties.map(t=>esc(t.n)).join("、")}」並列，暫以先列出者為主</span>`:"")
         :'<span class="none">尚無人選</span>';
       return `<li><b>${esc(r.title)}</b><span>${v}</span></li>`;
     }).join("");
