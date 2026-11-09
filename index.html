@@ -56,7 +56,26 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .msg.err{color:var(--err)}
 .msg.ok{color:var(--ok)}
 .bar{display:none}
+#results{max-width:1040px;margin:0 auto;padding:0 16px 96px}
+#results[hidden]{display:none}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.rhead h2{font:700 22px "Noto Serif TC",serif;margin:0}
+.rhead button{flex:none;min-height:40px;padding:6px 14px}
+.rgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start}
+.plan{position:sticky;top:12px;background:var(--card);border:1px solid var(--blue);border-radius:10px;padding:16px}
+.plan h2{font:700 19px "Noto Serif TC",serif;margin:0 0 4px}
+.plan h3{font:700 15px "Noto Serif TC",serif;margin:14px 0 0;color:var(--blue)}
+.plan .note{display:block;font-size:12px;color:var(--mute)}
+.brow{padding:7px 0}
+.blabel{font-size:15px}
+.btrack{height:14px;margin:3px 0;background:var(--bg);border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.bfill{display:block;height:100%;background:var(--mute);opacity:.55}
+.bfill.lead{background:var(--blue);opacity:1}
+.bval{font-size:13px;color:var(--mute)}
+.ltag{color:var(--blue);font-weight:500;margin-left:6px}
 @media(max-width:800px){
+.rgrid{grid-template-columns:1fr}
+.plan{position:static;order:-1}
 main{grid-template-columns:1fr}
 aside{position:static;max-height:none}
 .bar{display:flex;position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);justify-content:space-between;align-items:center;z-index:5}
@@ -100,6 +119,14 @@ aside{position:static;max-height:none}
     </div>
   </aside>
 </main>
+
+<section id="results" hidden aria-live="polite">
+  <div class="rhead">
+    <h2>目前統計</h2>
+    <button id="refresh" class="ghost" type="button">重新整理</button>
+  </div>
+  <div id="rbody"></div>
+</section>
 
 <div class="bar"><span id="barText"></span><a href="#summary">查看並送出</a></div>
 
@@ -197,6 +224,84 @@ function plain(){
 }
 function setMsg(t,cls){const m=$("msg");m.textContent=t;m.className="msg "+(cls||"");}
 
+/* ---------- 統計結果（讀取 Google 試算表「統計」工作表） ---------- */
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const badge=it=>it.extra?`<em class="up">+$${it.extra}／人</em>`:"";
+
+function jsonp(url){
+  return new Promise((res,rej)=>{
+    const cb="__stats_"+Date.now();
+    const s=document.createElement("script");
+    const done=()=>{clearTimeout(t);delete window[cb];s.remove();};
+    const t=setTimeout(()=>{done();rej(new Error("timeout"));},15000);
+    window[cb]=j=>{done();j&&j.ok?res(j.stats):rej(new Error((j&&j.error)||"bad"));};
+    s.onerror=()=>{done();rej(new Error("load"));};
+    s.src=url+"&callback="+cb+"&_="+Date.now();
+    document.head.appendChild(s);
+  });
+}
+async function fetchStats(){
+  const url=ENDPOINT+(ENDPOINT.indexOf("?")>=0?"&":"?")+"action=stats";
+  try{
+    const r=await fetch(url,{cache:"no-store"});
+    const j=await r.json();
+    if(j&&j.ok)return j.stats;
+    throw new Error((j&&j.error)||"bad");
+  }catch(e){
+    return jsonp(url);
+  }
+}
+/* 每輪取份數最多者；並列時取先列出的，並標註並列 */
+function planOf(r){
+  const max=Math.max(0,...r.items.map(i=>i.count));
+  if(max===0)return {max:0,win:null,ties:[]};
+  const lead=r.items.filter(i=>i.count===max);
+  return {max,win:lead[0],ties:lead.slice(1)};
+}
+function renderResults(st){
+  const total=st.totalPeople;
+  const plans=st.rounds.map(planOf);
+  const hist=st.rounds.map((r,k)=>{
+    const p=plans[k];
+    const rows=r.items.map(it=>{
+      const w=total>0?Math.round(it.count/total*100):0;
+      const isLead=p.max>0&&it.count===p.max;
+      const pct=it.count>0?Math.max(w,2):0;
+      return `<div class="brow"><div class="blabel">${esc(it.n)}${badge(it)}</div>`
+        +`<div class="btrack" role="img" aria-label="${esc(it.n)} ${it.count} 份"><i class="bfill${isLead?" lead":""}" style="width:${pct}%"></i></div>`
+        +`<div class="bval">${it.count} 份${isLead?'<span class="ltag">目前領先</span>':""}</div></div>`;
+    }).join("");
+    return `<div class="course"><div class="head"><h2>${esc(r.title)}</h2><span class="tag">${CN[r.items.length]}選${CN[1]}</span></div>${rows}</div>`;
+  }).join("");
+  let plan;
+  if(total===0||plans.every(p=>p.max===0)){
+    plan=`<h2>預計菜單</h2><p class="sub">目前還沒有資料，有人送出後會顯示。</p>`;
+  }else{
+    const lis=st.rounds.map((r,k)=>{
+      const p=plans[k];
+      const v=p.win
+        ?`${esc(p.win.n)}${badge(p.win)}<span class="note">${p.win.count} 份`
+          +(p.ties.length?`｜與「${p.ties.map(t=>esc(t.n)).join("、")}」並列，暫以先列出者為主`:"")+`</span>`
+        :'<span class="none">尚無人選</span>';
+      return `<li><b>${esc(r.title)}</b><span>${v}</span></li>`;
+    }).join("");
+    const fx=st.fixed.map(x=>`<li><b>${esc(x.title)}</b><span>${esc(x.text)}</span></li>`).join("");
+    plan=`<h2>預計菜單</h2><p class="sub">店家規定每輪統一出一道菜，依份數最多者為主，其他選項不列出。</p>`
+      +`<ul class="sum">${lis}</ul><h3>固定餐點</h3><ul class="sum">${fx}</ul>`;
+  }
+  const time=new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+  $("rbody").innerHTML=`<p class="sub">已統計 ${total} 位｜更新於 ${time}｜每條長度為占總人數的比例</p>`
+    +`<div class="rgrid"><div>${hist}</div><div class="plan">${plan}</div></div>`;
+}
+async function showResults(){
+  $("results").hidden=false;
+  $("rbody").innerHTML='<p class="sub">載入統計中…</p>';
+  $("refresh").disabled=true;
+  try{renderResults(await fetchStats());}
+  catch(e){$("rbody").innerHTML='<p class="msg err">暫時無法載入統計，請稍後按「重新整理」再試。</p>';}
+  $("refresh").disabled=false;
+}
+
 async function submit(){
   const name=$("name").value.trim();
   if(!name){setMsg("請先填寫姓名","err");$("name").focus();return;}
@@ -218,7 +323,12 @@ async function submit(){
     setMsg("送出失敗，請檢查網路後再試一次","err");
   }
   sending=false;render();
+  if(sent){
+    await showResults();
+    $("results").scrollIntoView({behavior:"smooth",block:"start"});
+  }
 }
+$("refresh").onclick=showResults;
 $("submit").onclick=submit;
 $("name").oninput=touched;
 $("hc").onchange=touched;
